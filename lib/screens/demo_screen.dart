@@ -14,6 +14,8 @@ import 'messages_screen.dart';
 
 import 'my_activity_screen.dart';
 
+import 'profile_screen.dart';
+
 // SCREEN_IMPORTS
 
 class DemoScreen extends StatelessWidget {
@@ -38,6 +40,7 @@ class DemoScreen extends StatelessWidget {
         Icons.inventory_2_outlined,
         const MyActivityScreen(),
       ),
+      ('Профиль пользователя', Icons.person_outline, const ProfileScreen()),
       // SCREEN_ENTRIES
     ];
     return Scaffold(
