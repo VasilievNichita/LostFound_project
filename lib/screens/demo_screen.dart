@@ -4,6 +4,8 @@ import 'login_screen.dart';
 
 import 'board_screen.dart';
 
+import 'item_detail_screen.dart';
+
 // SCREEN_IMPORTS
 
 class DemoScreen extends StatelessWidget {
@@ -15,6 +17,7 @@ class DemoScreen extends StatelessWidget {
     final entries = <(String, IconData, Widget)>[
       ('Вход / регистрация', Icons.login_rounded, const LoginScreen()),
       ('Доска объявлений', Icons.dashboard_outlined, const BoardScreen()),
+      ('Карточка вещи', Icons.backpack_outlined, const ItemDetailScreen()),
       // SCREEN_ENTRIES
     ];
     return Scaffold(
