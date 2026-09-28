@@ -10,6 +10,8 @@ import 'item_form_screen.dart';
 
 import 'claim_screen.dart';
 
+import 'messages_screen.dart';
+
 // SCREEN_IMPORTS
 
 class DemoScreen extends StatelessWidget {
@@ -28,6 +30,7 @@ class DemoScreen extends StatelessWidget {
         const ItemFormScreen(),
       ),
       ('Заявка владельца', Icons.pan_tool_outlined, const ClaimScreen()),
+      ('Сообщения по заявке', Icons.forum_outlined, const MessagesScreen()),
       // SCREEN_ENTRIES
     ];
     return Scaffold(
