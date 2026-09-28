@@ -20,6 +20,14 @@ class ItemVisual extends StatelessWidget {
       Icons.power_outlined,
       Icons.umbrella_outlined,
       Icons.menu_book_outlined,
+      Icons.badge_outlined,
+      Icons.usb_rounded,
+      Icons.calculate_outlined,
+      Icons.sports_handball_outlined,
+      Icons.water_drop_outlined,
+      Icons.checkroom_outlined,
+      Icons.cable_outlined,
+      Icons.draw_outlined,
     ];
     final index = (int.parse(item.id.substring(1)) - 1) % icons.length;
     return Semantics(
