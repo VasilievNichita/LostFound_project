@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'login_screen.dart';
+
 // SCREEN_IMPORTS
 
 class DemoScreen extends StatelessWidget {
@@ -9,6 +11,7 @@ class DemoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final entries = <(String, IconData, Widget)>[
+      ('Вход / регистрация', Icons.login_rounded, const LoginScreen()),
       // SCREEN_ENTRIES
     ];
     return Scaffold(
