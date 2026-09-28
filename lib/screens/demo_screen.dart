@@ -6,6 +6,8 @@ import 'board_screen.dart';
 
 import 'item_detail_screen.dart';
 
+import 'item_form_screen.dart';
+
 // SCREEN_IMPORTS
 
 class DemoScreen extends StatelessWidget {
@@ -18,6 +20,11 @@ class DemoScreen extends StatelessWidget {
       ('Вход / регистрация', Icons.login_rounded, const LoginScreen()),
       ('Доска объявлений', Icons.dashboard_outlined, const BoardScreen()),
       ('Карточка вещи', Icons.backpack_outlined, const ItemDetailScreen()),
+      (
+        'Создание / редактирование',
+        Icons.edit_note_rounded,
+        const ItemFormScreen(),
+      ),
       // SCREEN_ENTRIES
     ];
     return Scaffold(
