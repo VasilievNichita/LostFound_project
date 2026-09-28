@@ -12,6 +12,8 @@ import 'claim_screen.dart';
 
 import 'messages_screen.dart';
 
+import 'my_activity_screen.dart';
+
 // SCREEN_IMPORTS
 
 class DemoScreen extends StatelessWidget {
@@ -31,6 +33,11 @@ class DemoScreen extends StatelessWidget {
       ),
       ('Заявка владельца', Icons.pan_tool_outlined, const ClaimScreen()),
       ('Сообщения по заявке', Icons.forum_outlined, const MessagesScreen()),
+      (
+        'Мои объявления и заявки',
+        Icons.inventory_2_outlined,
+        const MyActivityScreen(),
+      ),
       // SCREEN_ENTRIES
     ];
     return Scaffold(
