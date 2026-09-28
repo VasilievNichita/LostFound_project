@@ -8,6 +8,8 @@ import 'item_detail_screen.dart';
 
 import 'item_form_screen.dart';
 
+import 'claim_screen.dart';
+
 // SCREEN_IMPORTS
 
 class DemoScreen extends StatelessWidget {
@@ -25,6 +27,7 @@ class DemoScreen extends StatelessWidget {
         Icons.edit_note_rounded,
         const ItemFormScreen(),
       ),
+      ('Заявка владельца', Icons.pan_tool_outlined, const ClaimScreen()),
       // SCREEN_ENTRIES
     ];
     return Scaffold(
