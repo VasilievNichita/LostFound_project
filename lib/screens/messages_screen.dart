@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
+import '../widgets/not_found_screen.dart';
 import '../widgets/status_badge.dart';
 
 class MessagesScreen extends StatelessWidget {
-  const MessagesScreen({super.key});
+  const MessagesScreen({super.key, this.claimId, this.itemId});
+  final String? claimId, itemId;
 
   @override
   Widget build(BuildContext context) {
+    final claim = claims.where((claim) => claim.id == claimId).firstOrNull;
+    final item = allItems
+        .where((item) => item.id == (claim?.itemId ?? itemId))
+        .firstOrNull;
+    if (item == null || (claimId != null && claim == null)) {
+      return const NotFoundScreen();
+    }
+    final thread = messages
+        .where((message) => message.claimId == claimId)
+        .toList();
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Scaffold(
@@ -22,7 +34,7 @@ class MessagesScreen extends StatelessWidget {
                   CircleAvatar(
                     backgroundColor: scheme.secondaryContainer,
                     child: Text(
-                      'АР',
+                      'LF',
                       style: TextStyle(color: scheme.onSecondaryContainer),
                     ),
                   ),
@@ -31,15 +43,15 @@ class MessagesScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Ана Русу', style: theme.textTheme.titleMedium),
                         Text(
-                          foundItems.first.title,
-                          style: theme.textTheme.bodySmall,
+                          userNames[item.userId] ?? item.userId,
+                          style: theme.textTheme.titleMedium,
                         ),
+                        Text(item.title, style: theme.textTheme.bodySmall),
                       ],
                     ),
                   ),
-                  const StatusBadge(label: 'Заявка №1'),
+                  StatusBadge(label: claimId ?? 'Пример'),
                 ],
               ),
             ),
@@ -47,10 +59,10 @@ class MessagesScreen extends StatelessWidget {
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
-                itemCount: messages.length,
+                itemCount: thread.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  final message = messages[index];
+                  final message = thread[index];
                   final mine = message.senderId == currentUserId;
                   return Align(
                     alignment: mine

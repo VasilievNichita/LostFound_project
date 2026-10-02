@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.register = false});
+  final bool register;
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +51,19 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          FilledButton(onPressed: () {}, child: const Text('Войти')),
+          FilledButton(
+            onPressed: () => context.go('/items'),
+            child: Text(register ? 'Зарегистрироваться' : 'Войти'),
+          ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () {},
-            child: const Text('Нет аккаунта? Зарегистрируйтесь'),
+            onPressed: () =>
+                register ? context.go('/login') : context.push('/register'),
+            child: Text(
+              register
+                  ? 'Уже есть аккаунт? Войти'
+                  : 'Нет аккаунта? Зарегистрируйтесь',
+            ),
           ),
           const SizedBox(height: 28),
           Row(

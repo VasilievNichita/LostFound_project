@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'screens/demo_screen.dart';
+import 'package:go_router/go_router.dart';
+
+import 'router.dart';
 
 void main() => runApp(const LostFoundApp());
 
@@ -33,14 +35,14 @@ ThemeData buildTheme() {
 }
 
 class LostFoundApp extends StatelessWidget {
-  const LostFoundApp({super.key, this.home});
-  final Widget? home;
+  const LostFoundApp({super.key, this.routerConfig});
+  final GoRouter? routerConfig;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => MaterialApp.router(
     title: 'LostFound',
     debugShowCheckedModeBanner: false,
     theme: buildTheme(),
-    home: home ?? const DemoScreen(),
+    routerConfig: routerConfig ?? router,
   );
 }

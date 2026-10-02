@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
+import '../widgets/not_found_screen.dart';
 import '../widgets/item_card.dart';
 
 class ClaimScreen extends StatelessWidget {
-  const ClaimScreen({super.key});
+  const ClaimScreen({super.key, required this.itemId});
+  final String itemId;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final item = allItems.where((item) => item.id == itemId).firstOrNull;
+    if (item == null) return const NotFoundScreen();
     return Scaffold(
       appBar: AppBar(title: const Text('Заявка владельца')),
       body: ListView(
@@ -18,7 +22,7 @@ class ClaimScreen extends StatelessWidget {
           const SizedBox(height: 8),
           const Text('Расскажите о деталях, которые знаете только вы.'),
           const SizedBox(height: 20),
-          ItemCard(item: foundItems.first),
+          ItemCard(item: item),
           const SizedBox(height: 24),
           const TextField(
             minLines: 4,

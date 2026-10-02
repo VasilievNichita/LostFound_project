@@ -50,44 +50,49 @@ class ItemVisual extends StatelessWidget {
 }
 
 class ItemCard extends StatelessWidget {
-  const ItemCard({super.key, required this.item});
+  const ItemCard({super.key, required this.item, this.onTap});
   final Item item;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card.filled(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ItemVisual(item: item),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.title, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 6),
-                  Text(item.location, style: theme.textTheme.bodyMedium),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.dateLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ItemVisual(item: item),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.title, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 6),
+                    Text(item.location, style: theme.textTheme.bodyMedium),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.dateLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  StatusBadge(
-                    label: item.statusLabel,
-                    resolved: item.statusLabel == 'Возвращено',
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    StatusBadge(
+                      label: item.statusLabel,
+                      resolved: item.statusLabel == 'Возвращено',
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

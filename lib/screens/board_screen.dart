@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../data/mock_data.dart';
 import '../widgets/item_card.dart';
@@ -14,13 +15,14 @@ class BoardScreen extends StatelessWidget {
         title: const Text('Доска объявлений'),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () => context.push('/items/new'),
             icon: const Icon(Icons.add_circle_outline),
             tooltip: 'Добавить объявление',
           ),
         ],
       ),
       body: CustomScrollView(
+        key: const PageStorageKey('board-scroll'),
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -85,7 +87,10 @@ class BoardScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             sliver: SliverList.separated(
               itemCount: foundItems.length,
-              itemBuilder: (_, index) => ItemCard(item: foundItems[index]),
+              itemBuilder: (_, index) => ItemCard(
+                item: foundItems[index],
+                onTap: () => context.push('/items/${foundItems[index].id}'),
+              ),
               separatorBuilder: (_, _) => const SizedBox(height: 12),
             ),
           ),

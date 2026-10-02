@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../data/mock_data.dart';
 
 class ItemFormScreen extends StatelessWidget {
-  const ItemFormScreen({super.key});
+  const ItemFormScreen({super.key, this.itemId});
+  final String? itemId;
 
   @override
   Widget build(BuildContext context) {

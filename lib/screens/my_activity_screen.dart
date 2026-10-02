@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../data/mock_data.dart';
 import '../widgets/item_card.dart';
@@ -43,7 +44,10 @@ class MyActivityScreen extends StatelessWidget {
             sliver: SliverList.separated(
               itemCount: myItems.length,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (_, index) => ItemCard(item: myItems[index]),
+              itemBuilder: (_, index) => ItemCard(
+                item: myItems[index],
+                onTap: () => context.push('/items/${myItems[index].id}'),
+              ),
             ),
           ),
           SliverToBoxAdapter(
@@ -74,6 +78,12 @@ class MyActivityScreen extends StatelessWidget {
                         Text(item.title, style: theme.textTheme.titleMedium),
                         const SizedBox(height: 8),
                         Text(claim.message),
+                        TextButton(
+                          onPressed: () => context.push(
+                            '/activity/claims/${claim.id}/messages',
+                          ),
+                          child: const Text('Открыть переписку'),
+                        ),
                         const SizedBox(height: 12),
                         StatusBadge(
                           label: claim.status,

@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../data/mock_data.dart';
+import '../widgets/not_found_screen.dart';
+import '../widgets/feedback.dart';
 import '../widgets/item_card.dart';
 import '../widgets/info_row.dart';
 import '../widgets/status_badge.dart';
 
 class ItemDetailScreen extends StatelessWidget {
-  const ItemDetailScreen({super.key});
+  const ItemDetailScreen({super.key, required this.id});
+  final String id;
 
   @override
   Widget build(BuildContext context) {
-    final item = foundItems.first;
+    final item = allItems.where((item) => item.id == id).firstOrNull;
+    if (item == null) return const NotFoundScreen();
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Карточка вещи'),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () =>
+                showNotice(context, 'Адрес объявления: /items/$id'),
             icon: const Icon(Icons.ios_share),
             tooltip: 'Поделиться',
           ),
@@ -36,10 +42,7 @@ class ItemDetailScreen extends StatelessWidget {
               children: [
                 ItemVisual(item: item, size: 120),
                 const SizedBox(height: 8),
-                const Text(
-                  'Изображение вещи',
-                  semanticsLabel: 'Иллюстрация рюкзака',
-                ),
+                const Text('Изображение вещи'),
               ],
             ),
           ),
@@ -65,18 +68,18 @@ class ItemDetailScreen extends StatelessWidget {
                 children: [
                   InfoRow(
                     icon: Icons.location_on_outlined,
-                    label: 'Место находки',
+                    label: 'Место',
                     value: item.location,
                   ),
                   InfoRow(
                     icon: Icons.schedule,
-                    label: 'Когда найдено',
+                    label: 'Дата',
                     value: item.dateLabel,
                   ),
-                  const InfoRow(
+                  InfoRow(
                     icon: Icons.person_outline,
-                    label: 'Опубликовала',
-                    value: 'Ана Русу · студентка ТУМ',
+                    label: 'Автор',
+                    value: userNames[item.userId] ?? item.userId,
                   ),
                 ],
               ),
@@ -84,15 +87,20 @@ class ItemDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: () {},
+            onPressed:
+                item.userId == currentUserId || item.statusLabel == 'Возвращено'
+                ? null
+                : () => context.push('/items/$id/claim'),
             icon: const Icon(Icons.pan_tool_outlined),
             label: const Text('Это моя вещь'),
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.task_alt),
-            label: const Text('Отметить возврат'),
+            onPressed: item.userId == currentUserId
+                ? () => context.push('/items/$id/edit')
+                : null,
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('Редактировать'),
           ),
         ],
       ),

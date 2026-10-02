@@ -15,10 +15,10 @@ void main() {
   const screens = <(String, Widget)>[
     ('Вход / регистрация', LoginScreen()),
     ('Доска объявлений', BoardScreen()),
-    ('Карточка вещи', ItemDetailScreen()),
+    ('Карточка вещи', ItemDetailScreen(id: 'i1')),
     ('Создание / редактирование', ItemFormScreen()),
-    ('Заявка владельца', ClaimScreen()),
-    ('Сообщения по заявке', MessagesScreen()),
+    ('Заявка владельца', ClaimScreen(itemId: 'i1')),
+    ('Сообщения по заявке', MessagesScreen(claimId: 'c1')),
     ('Мои объявления и заявки', MyActivityScreen()),
     ('Профиль пользователя', ProfileScreen()),
   ];
@@ -54,7 +54,8 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           await tester.pumpWidget(
-            LostFoundApp(
+            MaterialApp(
+              theme: buildTheme(),
               home: MediaQuery(
                 data: MediaQueryData(
                   size: size,
@@ -79,35 +80,4 @@ void main() {
       );
     }
   }
-
-  testWidgets('Все восемь экранов доступны через меню и кнопку назад', (
-    tester,
-  ) async {
-    await tester.pumpWidget(const LostFoundApp());
-    for (final entry in screens) {
-      await tester.scrollUntilVisible(
-        find.text(entry.$1),
-        250,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text(entry.$1));
-      await tester.pumpAndSettle();
-      expect(find.byType(entry.$2.runtimeType), findsOneWidget);
-      await tester.pageBack();
-      await tester.pumpAndSettle();
-    }
-  });
-
-  testWidgets('Вход не проверяет поля и не авторизует пользователя', (
-    tester,
-  ) async {
-    await tester.pumpWidget(const LostFoundApp(home: LoginScreen()));
-    await tester.enterText(find.byType(TextField).first, 'не почта');
-    await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
-    await tester.pumpAndSettle();
-    expect(find.byType(LoginScreen), findsOneWidget);
-    expect(find.byType(Form), findsNothing);
-    expect(find.byType(TextFormField), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
 }
