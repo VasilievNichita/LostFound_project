@@ -2,14 +2,42 @@ import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
 import '../widgets/not_found_screen.dart';
+import '../validation.dart';
+import '../widgets/feedback.dart';
 import '../widgets/status_badge.dart';
 
-class MessagesScreen extends StatelessWidget {
+class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key, this.claimId, this.itemId});
   final String? claimId, itemId;
 
   @override
+  State<MessagesScreen> createState() => _MessagesScreenState();
+}
+
+class _MessagesScreenState extends State<MessagesScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _text = TextEditingController();
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    showNotice(
+      context,
+      'Сообщение проверено. Отправка появится на следующем этапе.',
+    );
+    _text.clear();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final claimId = widget.claimId;
+    final itemId = widget.itemId;
     final claim = claims.where((claim) => claim.id == claimId).firstOrNull;
     final item = allItems
         .where((item) => item.id == (claim?.itemId ?? itemId))
@@ -56,6 +84,13 @@ class MessagesScreen extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
+            if (thread.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Сообщений пока нет. Здесь будет переписка по этой вещи.',
+                ),
+              ),
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
@@ -107,23 +142,32 @@ class MessagesScreen extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Сообщение',
-                        contentPadding: EdgeInsets.all(14),
+              child: Form(
+                key: _formKey,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        key: const Key('message-text'),
+                        controller: _text,
+                        validator: validateMessage,
+                        textInputAction: TextInputAction.send,
+                        onFieldSubmitted: (_) => _send(),
+                        decoration: const InputDecoration(
+                          hintText: 'Сообщение',
+                          contentPadding: EdgeInsets.all(14),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: () {},
-                    tooltip: 'Отправить',
-                    icon: const Icon(Icons.arrow_upward),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    IconButton.filled(
+                      onPressed: _send,
+                      tooltip: 'Отправить',
+                      icon: const Icon(Icons.arrow_upward),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

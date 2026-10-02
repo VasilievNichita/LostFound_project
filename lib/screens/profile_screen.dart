@@ -2,11 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/mock_data.dart';
+import '../widgets/feedback.dart';
 import '../widgets/info_row.dart';
 import '../widgets/status_badge.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Выйти из аккаунта?'),
+        content: const Text('Вы вернётесь на экран входа.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Остаться'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Да, выйти'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      context.go('/login');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,12 +116,15 @@ class ProfileScreen extends StatelessWidget {
               ),
               title: Text(options[index].$2),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {},
+              onTap: () => showNotice(
+                context,
+                '${options[index].$2}: этот раздел пока в разработке.',
+              ),
             ),
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            onPressed: () => context.go('/login'),
+            onPressed: () => _logout(context),
             icon: const Icon(Icons.logout),
             label: const Text('Выйти из аккаунта'),
           ),

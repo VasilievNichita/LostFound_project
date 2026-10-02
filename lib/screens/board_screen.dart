@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/mock_data.dart';
+import '../widgets/feedback.dart';
 import '../widgets/item_card.dart';
 
 class BoardScreen extends StatelessWidget {
@@ -37,8 +38,11 @@ class BoardScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   const Text('Вещи и люди рядом — в вашем кампусе'),
                   const SizedBox(height: 20),
-                  const TextField(
-                    decoration: InputDecoration(
+                  TextField(
+                    readOnly: true,
+                    onTap: () =>
+                        showNotice(context, 'Поиск и фильтры подключим на L4.'),
+                    decoration: const InputDecoration(
                       hintText: 'Что вы потеряли?',
                       prefixIcon: Icon(Icons.search),
                     ),
@@ -59,13 +63,17 @@ class BoardScreen extends StatelessWidget {
                       ),
                     ],
                     selected: const {'found'},
-                    onSelectionChanged: (_) {},
+                    onSelectionChanged: (_) => showNotice(
+                      context,
+                      'Переключение потерянных и найденных вещей появится на L4.',
+                    ),
                   ),
                   const SizedBox(height: 12),
                   DropdownMenu<String>(
                     width: double.infinity,
                     initialSelection: 'Все места',
                     label: const Text('Место'),
+                    enabled: false,
                     leadingIcon: const Icon(Icons.location_on_outlined),
                     dropdownMenuEntries: ['Все места', ...locations]
                         .map(
