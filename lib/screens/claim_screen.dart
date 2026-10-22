@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/mock_data.dart';
+import 'package:provider/provider.dart';
+
+import '../models/lost_found_model.dart';
+import '../widgets/data_state.dart';
+import '../data/entities.dart';
 import '../validation.dart';
 import '../widgets/item_card.dart';
 import '../widgets/feedback.dart';
@@ -25,21 +29,44 @@ class _ClaimScreenState extends State<ClaimScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final model = context.read<LostFoundModel>();
+    if (model.busy) return;
     FocusScope.of(context).unfocus();
-    showNotice(
-      context,
-      'Заявка проверена. Открыт пример переписки без отправки.',
+    final error = await model.addClaim(
+      Claim(
+        '',
+        widget.itemId,
+        model.userId,
+        _evidence.text.trim(),
+        'Проверяется',
+      ),
     );
-    context.pushReplacement('/items/${widget.itemId}/preview');
+    if (!mounted) return;
+    if (error != null) {
+      showNotice(context, error);
+      return;
+    }
+    final claim = model.myClaims.firstWhere(
+      (c) => c.itemId == widget.itemId && c.status != 'Закрыта',
+    );
+    context.go('/activity/claims/${claim.id}/messages');
   }
 
   @override
   Widget build(BuildContext context) {
-    final item = allItems.where((item) => item.id == widget.itemId).firstOrNull;
+    final model = context.watch<LostFoundModel>();
+    final state = dataState(context, model);
+    if (state != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Заявка владельца')),
+        body: state,
+      );
+    }
+    final item = model.byId(widget.itemId);
     if (item == null ||
-        item.userId == currentUserId ||
+        item.userId == model.userId ||
         item.statusLabel == 'Возвращено') {
       return const NotFoundScreen();
     }
@@ -85,12 +112,12 @@ class _ClaimScreenState extends State<ClaimScreen> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'После проверки откроется пример переписки. Заявка пока не отправляется автору.',
+                'Заявка и переписка сохраняются в памяти до перезапуска.',
               ),
               const SizedBox(height: 20),
               FilledButton(
                 key: const Key('claim-submit'),
-                onPressed: _submit,
+                onPressed: model.busy ? null : _submit,
                 child: const Text('Это моё, отправить заявку'),
               ),
             ],

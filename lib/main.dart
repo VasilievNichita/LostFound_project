@@ -4,7 +4,35 @@ import 'package:go_router/go_router.dart';
 
 import 'router.dart';
 
-void main() => runApp(const LostFoundApp());
+import 'package:provider/provider.dart';
+
+import 'data/mock_repositories.dart';
+import 'models/lost_found_model.dart';
+
+void main() => runApp(const LostFoundRoot());
+
+class LostFoundRoot extends StatelessWidget {
+  const LostFoundRoot({super.key, this.store, this.routerConfig});
+  final MockStore? store;
+  final GoRouter? routerConfig;
+  @override
+  Widget build(BuildContext context) => MultiProvider(
+    providers: [
+      Provider<MockStore>(create: (_) => store ?? MockStore()),
+      ChangeNotifierProvider(
+        create: (context) {
+          final storage = context.read<MockStore>();
+          return LostFoundModel(
+            MockItemRepository(storage),
+            MockClaimRepository(storage),
+            MockMessageRepository(storage),
+          )..load();
+        },
+      ),
+    ],
+    child: LostFoundApp(routerConfig: routerConfig),
+  );
+}
 
 ThemeData buildTheme() {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF176B5B));

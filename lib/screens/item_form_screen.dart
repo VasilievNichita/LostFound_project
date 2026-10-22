@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/mock_data.dart';
+import 'package:provider/provider.dart';
+
+import '../models/lost_found_model.dart';
+import '../widgets/data_state.dart';
+import '../data/entities.dart';
 import '../validation.dart';
 import '../widgets/feedback.dart';
 import '../widgets/not_found_screen.dart';
@@ -21,10 +25,11 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   Item? _item;
   String? _type, _location;
 
-  @override
-  void initState() {
-    super.initState();
-    _item = allItems.where((item) => item.id == widget.itemId).firstOrNull;
+  bool _prefilled = false;
+  void _prefill(LostFoundModel model) {
+    if (_prefilled) return;
+    _prefilled = true;
+    _item = widget.itemId == null ? null : model.byId(widget.itemId!);
     if (_item case final item?) {
       _title.text = item.title;
       _description.text = item.description;
@@ -40,24 +45,51 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final model = context.read<LostFoundModel>();
+    if (model.busy) return;
     FocusScope.of(context).unfocus();
-    showNotice(
-      context,
-      'Проверено: ${_title.text.trim()}. Учебный список не изменён.',
+    final draft = Item(
+      _item?.id ?? '',
+      model.userId,
+      _type!,
+      _title.text.trim(),
+      _description.text.trim(),
+      _item?.imageUrl ?? '',
+      _location!,
+      _item?.dateLabel ?? '',
+      _item?.statusLabel == 'Возвращено'
+          ? 'Возвращено'
+          : (_type == 'found' ? 'Ищет владельца' : 'Поиск'),
     );
+    final error = await model.saveItem(draft, editing: widget.itemId != null);
+    if (!mounted) return;
+    if (error != null) {
+      showNotice(context, error);
+      return;
+    }
+    showNotice(context, 'Объявление сохранено в памяти приложения.');
     if (context.canPop()) {
       context.pop();
     } else {
-      context.go('/items');
+      context.go('/activity');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final model = context.watch<LostFoundModel>();
+    final state = dataState(context, model);
+    if (state != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Объявление')),
+        body: state,
+      );
+    }
+    _prefill(model);
     if (widget.itemId != null &&
-        (_item == null || _item!.userId != currentUserId)) {
+        (_item == null || _item!.userId != model.userId)) {
       return const NotFoundScreen();
     }
     return Scaffold(
@@ -70,6 +102,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       ),
       body: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -129,7 +162,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                 initialValue: _location,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Место *'),
-                items: locations
+                items: model.locations
                     .map(
                       (place) =>
                           DropdownMenuItem(value: place, child: Text(place)),
@@ -149,13 +182,11 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                 label: const Text('Добавить фото'),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'На этом этапе проверяем форму. Объявления ещё не сохраняются.',
-              ),
+              const Text('Изменения хранятся до перезапуска приложения.'),
               const SizedBox(height: 20),
               FilledButton(
                 key: const Key('item-submit'),
-                onPressed: _submit,
+                onPressed: model.busy ? null : _submit,
                 child: Text(
                   widget.itemId == null
                       ? 'Опубликовать'

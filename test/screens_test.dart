@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:lost_found/models/lost_found_model.dart';
+import 'package:lost_found/data/mock_repositories.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lost_found/main.dart';
 import 'package:lost_found/data/mock_data.dart';
@@ -53,15 +56,28 @@ void main() {
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
+          final store = MockStore(delay: Duration.zero);
           await tester.pumpWidget(
-            MaterialApp(
-              theme: buildTheme(),
-              home: MediaQuery(
-                data: MediaQueryData(
-                  size: size,
-                  textScaler: TextScaler.linear(configuration.$3),
+            MultiProvider(
+              providers: [
+                Provider<MockStore>.value(value: store),
+                ChangeNotifierProvider(
+                  create: (_) => LostFoundModel(
+                    MockItemRepository(store),
+                    MockClaimRepository(store),
+                    MockMessageRepository(store),
+                  )..load(),
                 ),
-                child: entry.$2,
+              ],
+              child: MaterialApp(
+                theme: buildTheme(),
+                home: MediaQuery(
+                  data: MediaQueryData(
+                    size: size,
+                    textScaler: TextScaler.linear(configuration.$3),
+                  ),
+                  child: entry.$2,
+                ),
               ),
             ),
           );

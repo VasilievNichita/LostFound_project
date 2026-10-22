@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/mock_data.dart';
+import '../data/entities.dart';
 import 'status_badge.dart';
 
 class ItemVisual extends StatelessWidget {

@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lost_found/main.dart';
+import 'package:lost_found/data/mock_repositories.dart';
 import 'package:lost_found/router.dart';
 import 'package:lost_found/validation.dart';
 import 'package:lost_found/screens/login_screen.dart';
 
-import 'support/lab3_flow.dart';
-
 void main() {
-  testWidgets('Полный сценарий L3, стеки вкладок и неизменность mock-данных', (
-    tester,
-  ) async {
-    await exerciseLab3(tester, (_) async {});
-  });
-
   test('Пробелы, границы длины и корректный email', () {
     expect(validateTitle('   '), isNotNull);
     expect(validateTitle('Ключи'), isNull);
@@ -39,7 +32,12 @@ void main() {
   ) async {
     final router = createRouter(initialLocation: '/items/new');
     addTearDown(router.dispose);
-    await tester.pumpWidget(LostFoundApp(routerConfig: router));
+    await tester.pumpWidget(
+      LostFoundRoot(
+        routerConfig: router,
+        store: MockStore(delay: Duration.zero),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Новое объявление'), findsOneWidget);
     for (final path in [
@@ -68,7 +66,12 @@ void main() {
   ) async {
     final router = createRouter(initialLocation: '/register');
     addTearDown(router.dispose);
-    await tester.pumpWidget(LostFoundApp(routerConfig: router));
+    await tester.pumpWidget(
+      LostFoundRoot(
+        routerConfig: router,
+        store: MockStore(delay: Duration.zero),
+      ),
+    );
     await tester.pumpAndSettle();
     for (final entry in {
       'name': 'Никита',

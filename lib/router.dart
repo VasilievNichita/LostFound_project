@@ -48,11 +48,6 @@ GoRouter createRouter({String initialLocation = '/login'}) => GoRouter(
                       builder: (_, state) =>
                           ClaimScreen(itemId: state.pathParameters['id']!),
                     ),
-                    GoRoute(
-                      path: 'preview',
-                      builder: (_, state) =>
-                          MessagesScreen(itemId: state.pathParameters['id']),
-                    ),
                   ],
                 ),
               ],

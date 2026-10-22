@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lost_found/main.dart';
+import 'package:lost_found/data/mock_repositories.dart';
 import 'package:lost_found/router.dart';
 
 void main() {
   testWidgets('Вход вне оболочки, адрес выбирает нужную вещь', (tester) async {
     final router = createRouter();
     addTearDown(router.dispose);
-    await tester.pumpWidget(LostFoundApp(routerConfig: router));
+    await tester.pumpWidget(
+      LostFoundRoot(
+        routerConfig: router,
+        store: MockStore(delay: Duration.zero),
+      ),
+    );
     expect(find.byType(NavigationBar), findsNothing);
     router.go('/items/i2');
     await tester.pumpAndSettle();
