@@ -10,7 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
   go_router: ^18.0.2
+  http: ^1.6.0
+  http_parser: ^4.1.2
+  image_picker: ^1.2.3
   provider: ^6.1.5+1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
