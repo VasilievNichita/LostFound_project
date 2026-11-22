@@ -131,27 +131,28 @@ class MyActivityScreen extends StatelessWidget {
                               ),
                               child: const Text('Открыть переписку'),
                             ),
-                            TextButton(
-                              onPressed: model.busy
-                                  ? null
-                                  : () async {
-                                      final confirmed = await confirmAction(
-                                        context,
-                                        'Удалить заявку?',
-                                        'Переписка по заявке тоже будет удалена.',
-                                      );
-                                      if (!confirmed || !context.mounted) {
-                                        return;
-                                      }
-                                      final error = await context
-                                          .read<LostFoundModel>()
-                                          .removeClaim(claim.id);
-                                      if (context.mounted && error != null) {
-                                        showNotice(context, error);
-                                      }
-                                    },
-                              child: const Text('Удалить заявку'),
-                            ),
+                            if (claim.userId == model.userId)
+                              TextButton(
+                                onPressed: model.busy
+                                    ? null
+                                    : () async {
+                                        final confirmed = await confirmAction(
+                                          context,
+                                          'Удалить заявку?',
+                                          'Переписка по заявке тоже будет удалена.',
+                                        );
+                                        if (!confirmed || !context.mounted) {
+                                          return;
+                                        }
+                                        final error = await context
+                                            .read<LostFoundModel>()
+                                            .removeClaim(claim.id);
+                                        if (context.mounted && error != null) {
+                                          showNotice(context, error);
+                                        }
+                                      },
+                                child: const Text('Удалить заявку'),
+                              ),
                             const SizedBox(height: 12),
                             StatusBadge(
                               label: claim.status,

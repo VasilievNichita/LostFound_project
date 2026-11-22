@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +8,12 @@ import 'package:provider/provider.dart';
 import '../models/lost_found_model.dart';
 import '../widgets/data_state.dart';
 import '../data/entities.dart';
+import '../data/api_client.dart';
+import '../data/result.dart';
+
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
+
 import '../validation.dart';
 import '../widgets/feedback.dart';
 import '../widgets/not_found_screen.dart';
@@ -25,12 +33,15 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   Item? _item;
   String? _type, _location;
 
+  bool _uploading = false;
+  String _imageUrl = '';
   bool _prefilled = false;
   void _prefill(LostFoundModel model) {
     if (_prefilled) return;
     _prefilled = true;
     _item = widget.itemId == null ? null : model.byId(widget.itemId!);
     if (_item case final item?) {
+      _imageUrl = item.imageUrl;
       _title.text = item.title;
       _description.text = item.description;
       _type = item.type;
@@ -48,7 +59,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final model = context.read<LostFoundModel>();
-    if (model.busy) return;
+    if (model.busy || _uploading) return;
     FocusScope.of(context).unfocus();
     final draft = Item(
       _item?.id ?? '',
@@ -56,7 +67,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       _type!,
       _title.text.trim(),
       _description.text.trim(),
-      _item?.imageUrl ?? '',
+      _imageUrl,
       _location!,
       _item?.dateLabel ?? '',
       _item?.statusLabel == 'Возвращено'
@@ -69,11 +80,49 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       showNotice(context, error);
       return;
     }
-    showNotice(context, 'Объявление сохранено в памяти приложения.');
+    showNotice(context, 'Объявление сохранено.');
     if (context.canPop()) {
       context.pop();
     } else {
       context.go('/activity');
+    }
+  }
+
+  Future<void> _pickPhoto() async {
+    setState(() => _uploading = true);
+    final api = context.read<ApiClient>();
+    try {
+      final photo = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+        imageQuality: 85,
+      );
+      if (photo == null || !mounted) return;
+      if (await photo.length() > 5 * 1024 * 1024) {
+        if (mounted) showNotice(context, 'Фото должно быть не больше 5 МБ.');
+        return;
+      }
+      final result = await api.upload(await photo.readAsBytes(), photo.name);
+      if (!mounted) return;
+      switch (result) {
+        case Success(:final value):
+          setState(() => _imageUrl = value);
+        case Failure(:final message):
+          showNotice(context, message);
+      }
+    } on FileSystemException {
+      if (mounted) {
+        showNotice(
+          context,
+          'Файл фотографии недоступен. Выберите его ещё раз.',
+        );
+      }
+    } on PlatformException {
+      if (mounted) {
+        showNotice(context, 'Не удалось открыть галерею. Попробуйте ещё раз.');
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
     }
   }
 
@@ -174,19 +223,23 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               ),
               const SizedBox(height: 16),
               OutlinedButton.icon(
-                onPressed: () => showNotice(
-                  context,
-                  'Загрузка фотографий появится после подключения сервера.',
-                ),
+                onPressed: _uploading || model.busy ? null : _pickPhoto,
                 icon: const Icon(Icons.add_photo_alternate_outlined),
                 label: const Text('Добавить фото'),
               ),
               const SizedBox(height: 16),
-              const Text('Изменения хранятся до перезапуска приложения.'),
+              if (_imageUrl.isNotEmpty)
+                Image.network(
+                  '$apiBaseUrl$_imageUrl',
+                  height: 160,
+                  errorBuilder: (_, _, _) =>
+                      const Text('Не удалось загрузить фото'),
+                ),
+              if (_uploading) const LinearProgressIndicator(),
               const SizedBox(height: 20),
               FilledButton(
                 key: const Key('item-submit'),
-                onPressed: model.busy ? null : _submit,
+                onPressed: model.busy || _uploading ? null : _submit,
                 child: Text(
                   widget.itemId == null
                       ? 'Опубликовать'

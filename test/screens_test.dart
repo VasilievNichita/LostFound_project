@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lost_found/models/lost_found_model.dart';
-import 'package:lost_found/data/mock_repositories.dart';
+
+import 'support/mock_repositories.dart';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lost_found/main.dart';
-import 'package:lost_found/data/mock_data.dart';
+
+import 'support/mock_root.dart';
+import 'support/mock_data.dart';
+
 import 'package:lost_found/screens/login_screen.dart';
 import 'package:lost_found/screens/board_screen.dart';
 import 'package:lost_found/screens/item_detail_screen.dart';

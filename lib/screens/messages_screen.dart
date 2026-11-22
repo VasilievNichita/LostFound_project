@@ -51,7 +51,16 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final state = dataState(context, model);
     if (state != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Сообщения по заявке')),
+        appBar: AppBar(
+          title: const Text('Сообщения по заявке'),
+          actions: [
+            IconButton(
+              tooltip: 'Обновить переписку',
+              onPressed: model.busy ? null : model.load,
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
         body: state,
       );
     }
@@ -63,7 +72,16 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Сообщения по заявке')),
+      appBar: AppBar(
+        title: const Text('Сообщения по заявке'),
+        actions: [
+          IconButton(
+            tooltip: 'Обновить переписку',
+            onPressed: model.busy ? null : model.load,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -91,7 +109,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       ],
                     ),
                   ),
-                  StatusBadge(label: claimId ?? 'Пример'),
+                  StatusBadge(label: claim.status),
                 ],
               ),
             ),

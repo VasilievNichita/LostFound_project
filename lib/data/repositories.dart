@@ -2,7 +2,14 @@ import 'entities.dart';
 import 'result.dart';
 
 abstract interface class ItemRepository {
-  Future<Result<List<Item>>> fetchAll();
+  Future<Result<List<Item>>> fetchAll({
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? type,
+    String? location,
+    bool mine = false,
+  });
   Future<Result<Item>> fetchById(String id);
   Future<Result<Item>> create(Item draft);
   Future<Result<Item>> update(Item item);

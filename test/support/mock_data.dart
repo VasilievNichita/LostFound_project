@@ -1,4 +1,4 @@
-import 'entities.dart';
+import 'package:lost_found/data/entities.dart';
 
 const currentUserId = 'u-nichita';
 const locations = [

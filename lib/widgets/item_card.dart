@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/entities.dart';
+import '../data/api_client.dart';
 import 'status_badge.dart';
 
 class ItemVisual extends StatelessWidget {
@@ -11,25 +12,29 @@ class ItemVisual extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final icons = [
-      Icons.backpack_outlined,
-      Icons.key_outlined,
-      Icons.headphones_outlined,
-      Icons.coffee_outlined,
-      Icons.visibility_outlined,
-      Icons.power_outlined,
-      Icons.umbrella_outlined,
-      Icons.menu_book_outlined,
-      Icons.badge_outlined,
-      Icons.usb_rounded,
-      Icons.calculate_outlined,
-      Icons.sports_handball_outlined,
-      Icons.water_drop_outlined,
-      Icons.checkroom_outlined,
-      Icons.cable_outlined,
-      Icons.draw_outlined,
-    ];
-    final index = (int.parse(item.id.substring(1)) - 1) % icons.length;
+    if (item.imageUrl.startsWith('/files/')) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Image.network(
+          '$apiBaseUrl${item.imageUrl}',
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          loadingBuilder: (_, child, progress) => progress == null
+              ? child
+              : SizedBox(
+                  width: size,
+                  height: size,
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+          errorBuilder: (_, _, _) => SizedBox(
+            width: size,
+            height: size,
+            child: const Icon(Icons.broken_image_outlined),
+          ),
+        ),
+      );
+    }
     return Semantics(
       label: 'Иллюстрация вещи: ${item.title}',
       child: Container(
@@ -40,7 +45,7 @@ class ItemVisual extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
         child: Icon(
-          icons[index],
+          Icons.inventory_2_outlined,
           size: size * .48,
           color: scheme.onSecondaryContainer,
         ),

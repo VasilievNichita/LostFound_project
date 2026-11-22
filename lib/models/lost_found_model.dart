@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../data/entities.dart';
@@ -8,8 +10,17 @@ class LostFoundModel extends ChangeNotifier {
   LostFoundModel(
     this._itemsRepository,
     this._claimsRepository,
-    this._messagesRepository,
-  );
+    this._messagesRepository, {
+    this.serverPaging = false,
+  });
+  final bool serverPaging;
+  Timer? _debounce;
+  int _boardRequest = 0, _page = 0;
+  bool loadingMore = false, hasMore = false;
+  String? boardError;
+  bool _retryMore = false;
+  Future<void> retryBoard() => loadBoard(more: _retryMore);
+  List<String> _boardIds = [];
   final ItemRepository _itemsRepository;
   final ClaimRepository _claimsRepository;
   final MessageRepository _messagesRepository;
@@ -47,7 +58,7 @@ class LostFoundModel extends ChangeNotifier {
   List<Message> thread(String id) =>
       List.unmodifiable(_messages.where((m) => m.claimId == id));
   List<Item> get visibleItems => List.unmodifiable(
-    _items.where(
+    (serverPaging ? _boardIds.map(byId).whereType<Item>() : _items).where(
       (i) =>
           i.type == _type &&
           (_location == null || i.location == _location) &&
@@ -67,12 +78,15 @@ class LostFoundModel extends ChangeNotifier {
     _query = query ?? _query;
     _location = clearLocation ? null : location ?? _location;
     _notify();
+    if (serverPaging) {
+      _boardRequest++;
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 350), () => loadBoard());
+    }
   }
 
   void resetFilters() {
-    _query = '';
-    _location = null;
-    _notify();
+    filter(query: '', clearLocation: true);
   }
 
   void _notify() {
@@ -81,17 +95,26 @@ class LostFoundModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _disposed = true;
     super.dispose();
   }
 
   Future<void> load() async {
     if (busy) return;
+    _debounce?.cancel();
+    _boardRequest++;
+    loadingMore = false;
+    boardError = null;
     _loading = true;
     _error = null;
     _notify();
     // Запросы независимы, но публикуем один согласованный набор данных.
-    final itemRequest = _itemsRepository.fetchAll();
+    final itemRequest = _itemsRepository.fetchAll(
+      type: serverPaging ? _type : null,
+      search: serverPaging ? _query : null,
+      location: serverPaging ? _location : null,
+    );
     final claimRequest = _claimsRepository.fetchAll();
     final messageRequest = _messagesRepository.fetchAll();
     final campusRequest = _itemsRepository.fetchCampus();
@@ -113,6 +136,33 @@ class LostFoundModel extends ChangeNotifier {
         _claims = claims;
         _messages = messages;
         _campus = campus;
+        if (serverPaging) {
+          _boardIds = items.map((i) => i.id).toList();
+          _page = 1;
+          hasMore = items.length == 20;
+          // Свои объявления и вещи из заявок нужны и вне текущего фильтра доски.
+          for (var page = 1; ; page++) {
+            final own = await _itemsRepository.fetchAll(
+              page: page,
+              limit: 100,
+              mine: true,
+            );
+            if (_disposed) return;
+            if (own case Success(:final value)) {
+              _mergeItems(value);
+              if (value.length < 100) break;
+            } else {
+              _error = (own as Failure).message;
+              break;
+            }
+          }
+          for (final claim in claims) {
+            if (byId(claim.itemId) != null) continue;
+            final related = await _itemsRepository.fetchById(claim.itemId);
+            if (_disposed) return;
+            if (related case Success(:final value)) _mergeItems([value]);
+          }
+        }
       case (Failure(message: final error), _, _, _):
         _error = error;
       case (_, Failure(message: final error), _, _):
@@ -126,12 +176,71 @@ class LostFoundModel extends ChangeNotifier {
     _notify();
   }
 
+  Future<String?> ensureItem(String id) async {
+    if (byId(id) != null) return null;
+    final result = await _itemsRepository.fetchById(id);
+    if (_disposed) return null;
+    switch (result) {
+      case Success(:final value):
+        _mergeItems([value]);
+        _notify();
+        return null;
+      case Failure(:final message):
+        return message;
+    }
+  }
+
+  void _mergeItems(List<Item> values) {
+    final byId = {for (final item in _items) item.id: item};
+    for (final item in values) {
+      byId[item.id] = item;
+    }
+    _items = byId.values.toList();
+  }
+
+  Future<void> loadBoard({bool more = false}) async {
+    if (_disposed ||
+        !serverPaging ||
+        busy ||
+        (more && (loadingMore || !hasMore))) {
+      return;
+    }
+    _debounce?.cancel();
+    _retryMore = more;
+    final request = ++_boardRequest;
+    final page = more ? _page + 1 : 1;
+    loadingMore = true;
+    boardError = null;
+    _notify();
+    final result = await _itemsRepository.fetchAll(
+      page: page,
+      search: _query.trim(),
+      type: _type,
+      location: _location,
+    );
+    if (_disposed || request != _boardRequest) return;
+    loadingMore = false;
+    switch (result) {
+      case Success(:final value):
+        _mergeItems(value);
+        _boardIds = {
+          ...(more ? _boardIds : <String>[]),
+          ...value.map((i) => i.id),
+        }.toList();
+        _page = page;
+        hasMore = value.length == 20;
+      case Failure(:final message):
+        boardError = message;
+    }
+    _notify();
+  }
+
   // Одна запись за раз: двойной tap и reload не могут затереть новый результат.
   Future<String?> _write<T>(
     Future<Result<T>> Function() request,
     void Function(T) apply,
   ) async {
-    if (busy) return 'Дождитесь завершения текущей операции.';
+    if (busy || loadingMore) return 'Дождитесь завершения текущей операции.';
     _saving = true;
     _notify();
     final result = await request();
@@ -153,6 +262,9 @@ class LostFoundModel extends ChangeNotifier {
         ? _itemsRepository.update(draft)
         : _itemsRepository.create(draft),
     (item) {
+      if (serverPaging && !_boardIds.contains(item.id)) {
+        _boardIds.insert(0, item.id);
+      }
       _items = editing
           ? [
               for (final old in _items)

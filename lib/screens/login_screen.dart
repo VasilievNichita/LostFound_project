@@ -3,7 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../validation.dart';
-import '../widgets/feedback.dart';
+
+import 'package:provider/provider.dart';
+
+import '../data/api_client.dart';
+import '../data/result.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, this.register = false});
@@ -29,16 +33,25 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+  bool _busy = false;
+  String? _error;
+  Future<void> _submit() async {
+    if (_busy || !_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
-    showNotice(
-      context,
-      widget.register
-          ? 'Данные регистрации проверены. Открыт учебный режим.'
-          : 'Форма проверена. Открыт учебный режим.',
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final result = await context.read<AuthApi>().signIn(
+      _email.text.trim(),
+      _password.text,
+      name: widget.register ? _name.text.trim() : null,
     );
-    context.go('/items');
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      if (result case Failure(:final message)) _error = message;
+    });
   }
 
   @override
@@ -133,15 +146,22 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
             const SizedBox(height: 24),
+            if (_busy) const LinearProgressIndicator(),
             FilledButton(
               key: const Key('auth-submit'),
-              onPressed: _submit,
-              child: Text(widget.register ? 'Зарегистрироваться' : 'Войти'),
+              onPressed: _busy ? null : _submit,
+              child: Text(
+                _busy
+                    ? 'Подождите...'
+                    : (widget.register ? 'Зарегистрироваться' : 'Войти'),
+              ),
             ),
             TextButton(
-              onPressed: () => widget.register
-                  ? context.go('/login')
-                  : context.push('/register'),
+              onPressed: _busy
+                  ? null
+                  : () => widget.register
+                        ? context.go('/login')
+                        : context.push('/register'),
               child: Text(
                 widget.register
                     ? 'Уже есть аккаунт? Войти'
@@ -149,9 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Учебный режим: поля проверяются локально. Аккаунт на сервере пока не создаётся.',
-            ),
+            if (_error != null)
+              Text(
+                _error!,
+                key: const Key('auth-error'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
           ],
         ),
       ),

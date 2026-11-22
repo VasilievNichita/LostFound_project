@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lost_found/main.dart';
-import 'package:lost_found/data/mock_repositories.dart';
+
+import 'support/mock_root.dart';
+import 'support/mock_repositories.dart';
+
 import 'package:lost_found/router.dart';
 
 void main() {
@@ -21,6 +23,6 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
     router.go('/items/unknown');
     await tester.pumpAndSettle();
-    expect(find.text('Страница не найдена'), findsOneWidget);
+    expect(find.text('Объявление не найдено.'), findsOneWidget);
   });
 }

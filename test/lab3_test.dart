@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lost_found/main.dart';
-import 'package:lost_found/data/mock_repositories.dart';
+
+import 'support/mock_root.dart';
+import 'support/mock_repositories.dart';
+
 import 'package:lost_found/router.dart';
 import 'package:lost_found/validation.dart';
-import 'package:lost_found/screens/login_screen.dart';
 
 void main() {
   test('Пробелы, границы длины и корректный email', () {
@@ -49,7 +50,14 @@ void main() {
     ]) {
       router.go(path);
       await tester.pumpAndSettle();
-      expect(find.text('Страница не найдена'), findsOneWidget);
+      expect(
+        find.text(
+          path == '/items/no-such-item'
+              ? 'Объявление не найдено.'
+              : 'Страница не найдена',
+        ),
+        findsOneWidget,
+      );
     }
     router.go('/activity/claims/c1/messages');
     await tester.pumpAndSettle();
@@ -61,7 +69,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Регистрация проверяет подтверждение и не сохраняет аккаунт', (
+  testWidgets('Регистрация не отправляет форму с разными паролями', (
     tester,
   ) async {
     final router = createRouter(initialLocation: '/register');
@@ -86,12 +94,5 @@ void main() {
     await tester.tap(find.byKey(const Key('auth-submit')));
     await tester.pumpAndSettle();
     expect(find.text('Пароли не совпадают'), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const Key('confirmation')));
-    await tester.enterText(find.byKey(const Key('confirmation')), 'abcdef');
-    await tester.ensureVisible(find.byKey(const Key('auth-submit')));
-    await tester.tap(find.byKey(const Key('auth-submit')));
-    await tester.pumpAndSettle();
-    expect(find.byType(LoginScreen), findsNothing);
-    expect(router.canPop(), isFalse);
   });
 }

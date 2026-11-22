@@ -1,7 +1,9 @@
-import 'entities.dart';
+import 'package:lost_found/data/entities.dart';
+
 import 'mock_data.dart' as seed;
-import 'repositories.dart';
-import 'result.dart';
+
+import 'package:lost_found/data/repositories.dart';
+import 'package:lost_found/data/result.dart';
 
 // Одно хранилище для связей вещь -> заявка -> сообщения.
 // На перезапуске создаётся заново; диска и сети в L4 нет.
@@ -44,8 +46,14 @@ class MockItemRepository implements ItemRepository {
   Future<Result<CampusData>> fetchCampus() =>
       store.request(() => Success(store.campus));
   @override
-  Future<Result<List<Item>>> fetchAll() =>
-      store.request(() => Success(List.unmodifiable(store._items)));
+  Future<Result<List<Item>>> fetchAll({
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? type,
+    String? location,
+    bool mine = false,
+  }) => store.request(() => Success(List.unmodifiable(store._items)));
   @override
   Future<Result<Item>> fetchById(String id) => store.request(() {
     final item = store._items.where((i) => i.id == id).firstOrNull;

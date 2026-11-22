@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:provider/provider.dart';
 
 import '../models/lost_found_model.dart';
 import '../widgets/data_state.dart';
-import '../data/mock_repositories.dart';
-import '../widgets/feedback.dart';
+import '../data/api_client.dart';
 import '../widgets/info_row.dart';
 import '../widgets/status_badge.dart';
 
@@ -17,13 +15,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _simulateError = false;
-  @override
-  void initState() {
-    super.initState();
-    _simulateError = context.read<MockStore>().simulateError;
-  }
-
   Future<void> _logout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -44,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     if (confirmed == true && context.mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
-      context.go('/login');
+      await context.read<AuthApi>().logout();
     }
   }
 
@@ -53,29 +44,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     final model = context.watch<LostFoundModel>();
     final campus = model.campus;
-    const options = [
-      (Icons.edit_outlined, 'Редактировать профиль'),
-      (Icons.notifications_outlined, 'Уведомления'),
-      (Icons.bookmark_border, 'Сохраненные поиски'),
-      (Icons.help_outline, 'Как вернуть вещь'),
-      (Icons.support_agent, 'Связаться с поддержкой'),
-      (Icons.info_outline, 'О LostFound'),
-    ];
     return Scaffold(
       appBar: AppBar(title: const Text('Профиль пользователя')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          SwitchListTile(
-            key: const Key('simulate-error'),
-            title: const Text('Симулировать сбой сети'),
-            subtitle: const Text('Учебная проверка отказа хранилища'),
-            value: _simulateError,
-            onChanged: (value) {
-              setState(() => _simulateError = value);
-              context.read<MockStore>().simulateError = value;
-            },
-          ),
           if (model.isLoading) const LinearProgressIndicator(),
           if (model.error != null)
             ErrorView(
@@ -88,7 +61,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 radius: 40,
                 backgroundColor: theme.colorScheme.primaryContainer,
                 child: Text(
-                  campus.name.split(' ').take(2).map((part) => part[0]).join(),
+                  campus.name
+                      .split(' ')
+                      .where((part) => part.isNotEmpty)
+                      .take(2)
+                      .map((part) => part[0])
+                      .join(),
                   style: theme.textTheme.headlineMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                   ),
@@ -136,24 +114,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 20),
           ],
-          Text('Ваше пространство', style: theme.textTheme.titleLarge),
-          const SizedBox(height: 8),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: options.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (_, index) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(
-                options[index].$1,
-                color: theme.colorScheme.primary,
-              ),
-              title: Text(options[index].$2),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => showNotice(
-                context,
-                '${options[index].$2}: этот раздел пока в разработке.',
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Как вернуть вещь'),
+            onTap: () => showDialog<void>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Договоритесь о возврате'),
+                content: const Text(
+                  'В заявке укажите приметы, которых нет в объявлении. Обсудите встречу в переписке. После передачи автор объявления нажимает «Вещь возвращена».',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Понятно'),
+                  ),
+                ],
               ),
             ),
           ),

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lost_found/data/entities.dart';
-import 'package:lost_found/data/mock_repositories.dart';
+
+import 'support/mock_repositories.dart';
+
 import 'package:lost_found/data/result.dart';
 import 'package:lost_found/models/lost_found_model.dart';
 

@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
 
 import 'screens/board_screen.dart';
 import 'screens/claim_screen.dart';
@@ -9,13 +10,26 @@ import 'screens/messages_screen.dart';
 import 'screens/my_activity_screen.dart';
 import 'screens/profile_screen.dart';
 import 'widgets/app_shell.dart';
+import 'widgets/item_loader.dart';
 import 'widgets/not_found_screen.dart';
 
 // В приложении создаётся один router. Фабрика позволяет изолировать тесты.
 final router = createRouter();
 
-GoRouter createRouter({String initialLocation = '/login'}) => GoRouter(
+GoRouter createRouter({
+  String initialLocation = '/login',
+  bool Function()? isAuthenticated,
+}) => GoRouter(
   initialLocation: initialLocation,
+  redirect: (_, state) {
+    if (isAuthenticated == null) return null;
+    final authRoute =
+        state.matchedLocation == '/login' ||
+        state.matchedLocation == '/register';
+    if (!isAuthenticated() && !authRoute) return '/login';
+    if (isAuthenticated() && authRoute) return '/items';
+    return null;
+  },
   errorBuilder: (_, _) => const NotFoundScreen(),
   routes: [
     GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
@@ -35,8 +49,11 @@ GoRouter createRouter({String initialLocation = '/login'}) => GoRouter(
                 GoRoute(path: 'new', builder: (_, _) => const ItemFormScreen()),
                 GoRoute(
                   path: ':id',
-                  builder: (_, state) =>
-                      ItemDetailScreen(id: state.pathParameters['id']!),
+                  builder: (_, state) => ItemLoader(
+                    key: ValueKey(state.pathParameters['id']),
+                    id: state.pathParameters['id']!,
+                    child: ItemDetailScreen(id: state.pathParameters['id']!),
+                  ),
                   routes: [
                     GoRoute(
                       path: 'edit',
