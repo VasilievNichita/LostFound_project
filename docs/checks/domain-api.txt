@@ -1,0 +1,37 @@
+PASS /items requires auth
+PASS /claims requires auth
+PASS /messages requires auth
+PASS /campus requires auth
+PASS server assigns item id and author
+PASS campus board is shared
+PASS foreign item cannot be edited
+PASS foreign item cannot be deleted
+PASS location validation
+PASS empty title validation
+PASS cannot claim own item
+PASS claim created
+PASS duplicate active claim rejected
+PASS owner sees incoming claim
+PASS claim hidden from outsider
+PASS claim list private
+PASS outsider cannot send
+PASS claimant sends message
+PASS owner replies
+PASS both messages visible
+PASS thread private
+PASS cannot delete other message
+PASS delete own message
+PASS owner closes claim
+PASS closed thread rejects sends
+PASS claim status update
+PASS return item
+PASS returned item blocks conversation
+PASS returned item blocks claims
+PASS delete claim
+PASS claim deletion cascades
+PASS delete item
+PASS deleted item missing
+PASS Unicode server search and two pages
+PASS pages have no duplicates
+PASS own items filter
+PASS: 36 LostFound API checks. These are own tests, not official conformance.

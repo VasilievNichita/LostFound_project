@@ -1,0 +1,5 @@
+Android integration, real HTTP at 8081. Filtered test result from flutter drive.
+I/flutter (10620): 00:00 +0: L5: live API, two users, paging, persistence, outage and 401
+I/flutter (10620): 01:08 +1: (tearDownAll)
+I/flutter (10620): 01:09 +2: All tests passed!
+All tests passed.

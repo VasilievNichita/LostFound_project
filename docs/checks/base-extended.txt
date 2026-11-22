@@ -1,0 +1,19 @@
+PASS health
+PASS notes require token
+PASS registration
+PASS duplicate account
+PASS wrong password
+PASS login
+PASS current user
+PASS create note
+PASS get note
+PASS search and pagination
+PASS update note
+PASS foreign note hidden
+PASS validation
+PASS delete empty 204
+PASS deleted note
+PASS file upload
+PASS file download
+PASS malformed multipart
+PASS: 18 own base API checks. Official conformance kit not supplied.

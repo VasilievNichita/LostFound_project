@@ -1,0 +1,8 @@
+POST /auth/register -> HTTP 201
+Response: token=<redacted>, user created
+GET /items -> HTTP 401
+{"error":{"code":"UNAUTHORIZED","message":"Missing or invalid token"}}
+POST /items -> HTTP 201
+{"id":26,"userId":3,"type":"found","title":"Curl pencil case","description":"Blue fabric","imageUrl":"","location":"Библиотека","status":"open","createdAt":"2026-10-04T13:40:23.983Z"}
+GET /items?search=Curl%20pencil&page=1&limit=20 -> HTTP 200
+{"items":[{"id":26,"userId":3,"type":"found","title":"Curl pencil case","description":"Blue fabric","imageUrl":"","location":"Библиотека","status":"open","createdAt":"2026-10-04T13:40:23.983Z"}],"total":1,"page":1,"limit":20}

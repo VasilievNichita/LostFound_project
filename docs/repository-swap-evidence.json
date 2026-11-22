@@ -1,0 +1,9 @@
+{
+  "lib/models/lost_found_model.dart": true,
+  "lib/screens/board_screen.dart": true,
+  "lib/screens/item_detail_screen.dart": true,
+  "lib/screens/item_form_screen.dart": true,
+  "lib/screens/claim_screen.dart": true,
+  "lib/screens/messages_screen.dart": true,
+  "lib/screens/my_activity_screen.dart": true
+}
